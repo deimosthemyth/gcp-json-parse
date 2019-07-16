@@ -1,17 +1,21 @@
 #!/usr/bin/python
 #Script to help parse GCP HTTP JSON data into a readable format
 #Written for Python 3.7.x by deimosthemyth https://github.com/deimosthemyth
+#Backwards compatibility added - 7/16/19
 #Function to define user-supplied input (v2 expand to include what JSON vars they want to output vs static value)
 
 import json
 import base64
 import time
-from urllib.parse import unquote
 import csv
+import sys
+#Global var to check version for backwards compatibility
+pyVersion = sys.version_info[0]
+if pyVersion == 2:
+    from urllib import unquote
 
 #Start efficiency timing
 #start = time.time()
-
 #Open output file for writing - MOVE THIS TO A GLOBAL FUNCTION
 outCSV = open('json-clean.csv', 'w')
 fieldnames = ['Timestamp', 'Source IP', 'Destination IP', 'Method','Full URL Path','Decoded Payload']
@@ -20,7 +24,10 @@ writer.writeheader()
 
 def userInput():
     try:
-        userFile = input("Please input the path of the JSON file you want to parse: ")
+        if pyVersion == 3:
+            userFile = input("Please input the path of the JSON file you want to parse: ")
+        else:
+            userFile = raw_input("Please input the path of the JSON file you want to parse: ")
         return userFile
     except IOError:
         print ("An error occured trying to import this file.  Please re-run the program with a valid filename and path.")
@@ -53,7 +60,10 @@ def jsParse(jsonData):
 
     #Would be good to add a check so see if it is base64 encoded 
     #Base64 decode of the body payload, and URL unencode as well
-    decodedReqBody = base64.b64decode(reqBody)
+    if pyVersion == 3:
+        decodedReqBody = base64.b64decode(reqBody)
+    else:
+        decodedReqBody = unquote(base64.decodestring(reqBody))
     
     #Print out values (static for now, change to requested in the future)
     timeStamp = epoch
@@ -61,9 +71,9 @@ def jsParse(jsonData):
     dstIP = jsonData['ip']['dstIp']
     method = jsonData['request']['method']
     fullPath = jsonData['request']['url']['host'] + jsonData['request']['url']['path']
-    decPayload = decodedReqBody
+    
     #Write current row to CSV
-    writer.writerow({'Timestamp': timeStamp, 'Source IP': srcIP, 'Destination IP': dstIP, 'Method': method, 'Full URL Path': fullPath, 'Decoded Payload': decPayload})
+    writer.writerow({'Timestamp': timeStamp, 'Source IP': srcIP, 'Destination IP': dstIP, 'Method': method, 'Full URL Path': fullPath, 'Decoded Payload': decodedReqBody})
 
 
 #Execute functions
