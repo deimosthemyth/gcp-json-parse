@@ -4,6 +4,9 @@
 #Backwards compatibility added - 7/16/19
 #Function to define user-supplied input (v2 expand to include what JSON vars they want to output vs static value)
 
+#Start efficiency timing
+#start = time.time()
+
 import json
 import base64
 import time
@@ -14,8 +17,6 @@ pyVersion = sys.version_info[0]
 if pyVersion == 2:
     from urllib import unquote
 
-#Start efficiency timing
-#start = time.time()
 #Open output file for writing - MOVE THIS TO A GLOBAL FUNCTION
 outCSV = open('json-clean.csv', 'w')
 fieldnames = ['Timestamp', 'Source IP', 'Destination IP', 'Method','Full URL Path','Decoded Payload']
